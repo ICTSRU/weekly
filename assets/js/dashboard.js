@@ -1,0 +1,46 @@
+
+let reports=[],activeFilter='ALL';
+function currentReports(){return activeFilter==='ALL'?reports:reports.filter(r=>r.report?.sector===activeFilter)}
+async function loadSample(){
+ try{reports=await fetch('data/sample-reports.json').then(r=>r.json());}
+ catch(e){reports=[];document.getElementById('dataState').textContent='Open via a local web server to load sample data.';render();return}
+ activeFilter='ALL';document.querySelectorAll('.sector-btn').forEach(x=>x.classList.toggle('active',x.dataset.filter==='ALL'));
+ document.getElementById('dataState').textContent='Sample dataset loaded';render();
+}
+function setFilter(s,btn){activeFilter=s;document.querySelectorAll('.sector-btn').forEach(x=>x.classList.remove('active'));btn.classList.add('active');render()}
+function filterFromCard(s){const btn=document.querySelector(`.sector-btn[data-filter="${s}"]`);setFilter(s,btn);window.scrollTo({top:0,behavior:'smooth'})}
+function statusRank(s){return s==='Critical'?3:s==='Attention Required'?2:1}
+function statusClass(s){return s==='Critical'?'status-red':s==='Attention Required'?'status-amber':'status-green'}
+function render(){
+ const rs=currentReports();renderPeriod(rs);renderKPIs(rs);renderSectorGrid();renderSectorKpis(rs);renderProjects(rs);renderProgressBars(rs);renderRisks(rs);renderIncidents(rs);renderCio(rs);renderHighlights(rs);renderPriorities(rs)
+}
+function renderPeriod(rs){
+ const f=rs[0]||reports[0]; if(f?.report?.weekStart&&f?.report?.weekEnd){const s=new Date(f.report.weekStart+'T00:00:00'),e=new Date(f.report.weekEnd+'T00:00:00');const fmt=d=>d.toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});periodTitle.textContent=`${fmt(s)} – ${fmt(e)}`}else periodTitle.textContent='No reporting period loaded';
+ periodSub.textContent=activeFilter==='ALL'?'Consolidated ICTD weekly status':`${sectorLabels[activeFilter]||activeFilter} sector view`
+}
+function renderKPIs(rs){
+ const allOn=rs.filter(r=>r.report?.overallStatus==='On Track').length,att=rs.filter(r=>r.report?.overallStatus==='Attention Required').length,crit=rs.filter(r=>r.report?.overallStatus==='Critical').length;
+ const worst=[...rs.map(r=>r.report?.overallStatus||'On Track')].sort((a,b)=>statusRank(b)-statusRank(a))[0]||'On Track';
+ overallHealth.textContent=worst==='Critical'?'Critical':worst==='Attention Required'?'Needs Attention':'Stable';overallHealthFoot.textContent=`${allOn} on track, ${att} need attention, ${crit} critical`;
+ const inc=rs.flatMap(r=>r.incidents||[]);criticalIssues.textContent=inc.filter(i=>['High','Critical'].includes(i.severity)&&i.status!=='Resolved').length;
+ const p=rs.flatMap(r=>r.projects||[]);projectsAtRisk.textContent=p.filter(x=>['Attention Required','Critical'].includes(x.status)).length;cioCount.textContent=rs.flatMap(r=>r.cioItems||[]).length
+}
+function renderSectorGrid(){
+ sectorGrid.innerHTML=['NOC','SOC','CCCU','AAU','OPS'].map(s=>{const r=reports.find(x=>x.report?.sector===s);if(!r)return `<div class="sector-card"><div class="empty">${sectorLabels[s]} — no data</div></div>`;const p=r.projects||[],inc=r.incidents||[],cio=r.cioItems||[],completion=avg(p.map(x=>x.progress));return `<div class="sector-card" onclick="filterFromCard('${s}')"><div class="sector-head"><span class="sector-name" style="color:${sectorColors[s]}">${sectorLabels[s]}</span><span class="status-pill ${statusClass(r.report.overallStatus)}">${esc(r.report.overallStatus)}</span></div><div class="sector-stats"><div class="sector-stat"><b>${p.length}</b><span>Projects</span></div><div class="sector-stat"><b>${inc.length}</b><span>Issues</span></div><div class="sector-stat"><b>${cio.length}</b><span>CIO Actions</span></div><div class="sector-stat"><b>${completion}%</b><span>Avg Progress</span></div></div><div class="meter"><div style="width:${completion}%;background:${sectorColors[s]}"></div></div></div>`}).join('')
+}
+function renderSectorKpis(rs){
+ if(!rs.length){sectorKpiLayer.innerHTML='<div class="empty">No KPI data</div>';return}
+ sectorKpiLayer.innerHTML=rs.map(r=>{const s=r.report.sector,defs=kpiDefinitions[s]||[],sup=Object.fromEntries((r.sectorKpis||[]).map(k=>[k.key,k]));const metrics=defs.map(d=>{const it=sup[d.key]||{},v=it.value??'',state=it.status||kpiStatus(d,v),color=state==='green'?'var(--green)':state==='amber'?'var(--amber)':state==='red'?'var(--red)':'#a4adba';return `<div class="sector-kpi-metric"><div class="sector-kpi-metric-top"><div class="sector-kpi-metric-label">${esc(d.label)}</div><span class="kpi-mini-state" style="background:${color}"></span></div><div class="sector-kpi-metric-value">${v===''?'—':esc(v+d.unit)}</div><div class="kpi-target-line">Target ${esc(kpiTarget(d))}</div></div>`}).join('');return `<div class="sector-kpi-group"><div class="sector-kpi-group-head"><b style="color:${sectorColors[s]}">${sectorLabels[s]}</b><span class="status-pill ${statusClass(r.report.overallStatus)}">${esc(r.report.overallStatus)}</span></div><div class="sector-kpi-list">${metrics}</div></div>`}).join('')
+}
+function renderProjects(rs){
+ const p=rs.flatMap(r=>r.projects||[]);let g=0,a=0,red=0;p.forEach(x=>x.status==='Critical'?red++:x.status==='Attention Required'?a++:g++);const total=p.length||1,gp=g/total*100,ap=a/total*100;projectTotal.textContent=p.length;projGreen.textContent=g;projAmber.textContent=a;projRed.textContent=red;projectDonut.style.background=`conic-gradient(var(--green) 0 ${gp}%,var(--amber) ${gp}% ${gp+ap}%,var(--red) ${gp+ap}% 100%)`
+}
+function renderProgressBars(rs){progressBars.innerHTML=rs.length?rs.map(r=>{const v=avg((r.projects||[]).map(x=>x.progress)),s=r.report.sector;return `<div class="bar-row"><div class="bar-label">${sectorLabels[s]}</div><div class="bar-track"><div class="bar-fill" style="width:${v}%;background:${sectorColors[s]}"></div></div><div class="bar-num">${v}%</div></div>`}).join(''):'<div class="empty">No data</div>'}
+function renderRisks(rs){const rank={Critical:4,High:3,Medium:2,Low:1},rows=rs.flatMap(r=>(r.risks||[]).map(x=>({...x,sector:r.report.sector}))).sort((a,b)=>(rank[b.impact]||0)-(rank[a.impact]||0));riskRows.innerHTML=rows.length?rows.map(x=>`<tr><td><strong>${sectorLabels[x.sector]}</strong></td><td>${esc(x.name)}</td><td><span class="chip ${chipFor(x.impact)}">${esc(x.impact)}</span></td><td><span class="chip ${chipFor(x.prob)}">${esc(x.prob)}</span></td><td><span class="chip ${x.esc==='Yes'?'red':'green'}">${esc(x.esc||'No')}</span></td></tr>`).join(''):'<tr><td colspan="5"><div class="empty">No risks reported</div></td></tr>'}
+function renderIncidents(rs){const inc=rs.flatMap(r=>r.incidents||[]),counts={Critical:0,High:0,Medium:0,Low:0};inc.forEach(i=>counts[i.severity]=(counts[i.severity]||0)+1);const m=Math.max(1,...Object.values(counts)),color={Critical:'var(--red)',High:'#ef6a32',Medium:'var(--amber)',Low:'var(--green)'};incidentBars.innerHTML=Object.entries(counts).map(([k,v])=>`<div class="bar-row"><div class="bar-label">${k}</div><div class="bar-track"><div class="bar-fill" style="width:${v/m*100}%;background:${color[k]}"></div></div><div class="bar-num">${v}</div></div>`).join('')}
+function renderCio(rs){const u={Critical:3,High:2,Normal:1},rows=rs.flatMap(r=>(r.cioItems||[]).map(x=>({...x,sector:r.report.sector}))).sort((a,b)=>(u[b.urg]||0)-(u[a.urg]||0));cioRows.innerHTML=rows.length?rows.map(x=>`<tr><td><strong>${sectorLabels[x.sector]}</strong></td><td><span class="chip blue">${esc(x.type)}</span></td><td>${esc(x.action)}</td><td><span class="chip ${chipFor(x.urg)}">${esc(x.urg)}</span></td><td>${esc(x.reason)}</td><td>${esc(x.date||'—')}</td></tr>`).join(''):'<tr><td colspan="6"><div class="empty">No CIO action requested</div></td></tr>'}
+function renderHighlights(rs){const rows=rs.flatMap(r=>(r.highlights||[]).map(x=>({...x,sector:r.report.sector}))).slice(0,10);highlightList.innerHTML=rows.length?rows.map(x=>`<div class="highlight"><div class="highlight-bar" style="background:${sectorColors[x.sector]}"></div><div><b>${esc(x.title)}</b><p>${sectorLabels[x.sector]} · ${esc(x.type)} · ${esc(x.impact)}</p></div><span class="chip ${chipFor(x.status)}">${esc(x.status)}</span></div>`).join(''):'<div class="empty">No highlights reported</div>'}
+function renderPriorities(rs){const rows=rs.flatMap(r=>(r.priorities||[]).map(x=>({...x,sector:r.report.sector}))).slice(0,10);priorityGrid.innerHTML=rows.length?rows.map(x=>`<div class="priority"><div><b>${esc(x.priority)}</b><br><span>${sectorLabels[x.sector]} · Owner: ${esc(x.owner||'—')} · Due ${esc(x.date||'—')}</span></div><span class="chip ${chipFor(x.status)}">${esc(x.status)}</span></div>`).join(''):'<div class="empty">No priorities reported</div>'}
+function openImport(){importModal.style.display='grid'}function closeImport(){importModal.style.display='none'}
+async function importFiles(e){let ok=0,bad=0;for(const f of [...e.target.files]){try{const d=JSON.parse(await f.text()),s=d?.report?.sector;if(!['NOC','SOC','CCCU','AAU','OPS'].includes(s))throw 0;const i=reports.findIndex(r=>r.report?.sector===s);if(i>=0)reports[i]=d;else reports.push(d);ok++}catch(_){bad++}}closeImport();activeFilter='ALL';document.querySelectorAll('.sector-btn').forEach(x=>x.classList.toggle('active',x.dataset.filter==='ALL'));dataState.textContent=`Imported ${ok} sector report${ok===1?'':'s'}${bad?` · ${bad} rejected`:''}`;render();toast('Import complete')}
+loadSample();

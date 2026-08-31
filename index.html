@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ICTD Weekly Executive Dashboard</title>
+<link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="brand"><div class="brand-mark">ICT</div><div><h1>ICTD Weekly Report</h1><p>CIO Executive Dashboard</p></div></div>
+  <div class="nav-title">Navigation</div>
+  <nav class="nav">
+    <a class="active" href="#overview">▣ Executive Overview</a>
+    <a href="#sectors">◈ Sector Health</a>
+    <a href="#sector-kpis">◎ Sector KPIs</a>
+    <a href="#projects">◆ Projects</a>
+    <a href="#risks">△ Risks & Incidents</a>
+    <a href="#cio">★ CIO Attention</a>
+    <a href="#priorities">→ Next Week</a>
+    <a href="sector-report.html">✎ Sector Reporting Form</a>
+  </nav>
+  <div class="nav-title">Filter</div>
+  <button class="sector-btn active" data-filter="ALL" onclick="setFilter('ALL',this)"><span>All ICTD</span><span class="dot" style="background:#fff"></span></button>
+  <button class="sector-btn" data-filter="NOC" onclick="setFilter('NOC',this)"><span>NOC</span><span class="dot" style="background:#1378b9"></span></button>
+  <button class="sector-btn" data-filter="SOC" onclick="setFilter('SOC',this)"><span>SOC</span><span class="dot" style="background:#ef2020"></span></button>
+  <button class="sector-btn" data-filter="CCCU" onclick="setFilter('CCCU',this)"><span>CCCU</span><span class="dot" style="background:#0cab58"></span></button>
+  <button class="sector-btn" data-filter="AAU" onclick="setFilter('AAU',this)"><span>AAU</span><span class="dot" style="background:#f5b814"></span></button>
+  <button class="sector-btn" data-filter="OPS" onclick="setFilter('OPS',this)"><span>Operations</span><span class="dot" style="background:#7a55c7"></span></button>
+  <div class="side-note">This is the Step 4 front-end prototype. Data is local/sample only; backend integration comes next.</div>
+</aside>
+
+<main>
+  <div class="topbar">
+    <div class="title"><h2>ICTD Weekly Executive Dashboard <span class="badge">STEP 4</span></h2><p>Executive view of ICT performance, operations, projects, risks, and management actions.</p></div>
+    <div class="actions">
+      <button class="btn" onclick="window.print()">Print / PDF</button>
+      <button class="btn" onclick="openImport()">Import Sector JSON</button>
+      <button class="btn soft" onclick="loadSample()">Reload Sample</button>
+      <a class="btn primary" href="sector-report.html" style="text-decoration:none">Open Sector Form</a>
+    </div>
+  </div>
+
+  <div class="period-bar" id="overview">
+    <div class="period-main"><div class="period-icon">W</div><div class="period-text"><b id="periodTitle">Weekly Reporting Period</b><span id="periodSub">Consolidated ICTD status</span></div></div>
+    <div class="data-state" id="dataState">Loading sample dataset...</div>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi"><div class="kpi-top"><span class="kpi-label">Overall ICT Health</span><span class="kpi-icon" style="background:var(--soft-green);color:var(--green)">●</span></div><div class="kpi-value" id="overallHealth">—</div><div class="kpi-foot" id="overallHealthFoot">—</div></div>
+    <div class="kpi"><div class="kpi-top"><span class="kpi-label">Critical / High Issues</span><span class="kpi-icon" style="background:var(--soft-red);color:var(--red)">!</span></div><div class="kpi-value" id="criticalIssues">0</div><div class="kpi-foot">Open significant operational issues</div></div>
+    <div class="kpi"><div class="kpi-top"><span class="kpi-label">Projects At Risk</span><span class="kpi-icon" style="background:var(--soft-amber);color:#8b6500">◆</span></div><div class="kpi-value" id="projectsAtRisk">0</div><div class="kpi-foot">Attention Required or Critical projects</div></div>
+    <div class="kpi"><div class="kpi-top"><span class="kpi-label">CIO Decisions / Actions</span><span class="kpi-icon" style="background:var(--soft-blue);color:var(--blue)">★</span></div><div class="kpi-value" id="cioCount">0</div><div class="kpi-foot">Explicit management actions requested</div></div>
+  </div>
+
+  <section class="panel" id="sectors"><div class="panel-head"><div><h3>Sector Health</h3><p>NOC, SOC, CCCU, AAU, and Operations.</p></div></div><div class="panel-body"><div class="sector-grid" id="sectorGrid"></div></div></section>
+
+  <section class="panel" id="sector-kpis"><div class="panel-head"><div><h3>Sector-Specific KPI Layer</h3><p>Tailored performance indicators with target status.</p></div></div><div class="panel-body"><div class="sector-kpi-layer" id="sectorKpiLayer"></div></div></section>
+
+  <div class="two-col">
+    <section class="panel" id="projects"><div class="panel-head"><div><h3>Project Health</h3><p>Distribution of active projects and major activities.</p></div></div><div class="panel-body"><div class="donut-wrap"><div class="donut" id="projectDonut"><div class="donut-center"><b id="projectTotal">0</b><span>Total Projects</span></div></div><div class="donut-legend"><div><span class="dot" style="background:var(--green)"></span>On Track / Completed: <b id="projGreen">0</b></div><div><span class="dot" style="background:var(--amber)"></span>Attention Required: <b id="projAmber">0</b></div><div><span class="dot" style="background:var(--red)"></span>Critical: <b id="projRed">0</b></div></div></div></div></section>
+    <section class="panel"><div class="panel-head"><div><h3>Average Project Completion</h3><p>Average progress by sector.</p></div></div><div class="panel-body"><div class="chart-bars" id="progressBars"></div></div></section>
+  </div>
+
+  <div class="two-col equal" id="risks">
+    <section class="panel"><div class="panel-head"><div><h3>Top Risks & Blockers</h3><p>Highest-impact reported risks.</p></div></div><div class="panel-body"><div class="table-wrap"><table><thead><tr><th>Sector</th><th>Risk / Blocker</th><th>Impact</th><th>Probability</th><th>Escalation</th></tr></thead><tbody id="riskRows"></tbody></table></div></div></section>
+    <section class="panel"><div class="panel-head"><div><h3>Operational Incidents</h3><p>Incident distribution by severity.</p></div></div><div class="panel-body"><div class="chart-bars" id="incidentBars"></div></div></section>
+  </div>
+
+  <section class="panel" id="cio"><div class="panel-head"><div><h3>CIO Attention Required</h3><p>Decision, approval, escalation, resource, vendor, or cross-functional items.</p></div></div><div class="panel-body"><div class="table-wrap"><table><thead><tr><th>Sector</th><th>Type</th><th>Required Action</th><th>Urgency</th><th>Context</th><th>Decision Needed By</th></tr></thead><tbody id="cioRows"></tbody></table></div></div></section>
+
+  <div class="two-col equal">
+    <section class="panel"><div class="panel-head"><div><h3>Weekly Highlights</h3><p>Selected internal and external achievements.</p></div></div><div class="panel-body"><div class="highlights" id="highlightList"></div></div></section>
+    <section class="panel" id="priorities"><div class="panel-head"><div><h3>Next Week Priorities</h3><p>Forward commitments across ICTD.</p></div></div><div class="panel-body"><div class="priority-grid" id="priorityGrid"></div></div></section>
+  </div>
+  <div class="footer-note">ICTD Weekly Reporting System · Step 4 HTML/CSS Front-End Prototype</div>
+</main>
+</div>
+
+<div class="modal-backdrop" id="importModal"><div class="modal"><div class="modal-head"><div><b>Import Sector Reports</b><div class="helper">Choose JSON exports from the sector reporting page.</div></div><button class="close" onclick="closeImport()">×</button></div><div class="modal-body"><input id="fileInput" type="file" accept=".json,application/json" multiple onchange="importFiles(event)"><div class="helper">Imported files replace the matching sector's current dashboard data.</div></div></div></div>
+<div class="toast" id="toast"></div>
+
+<script src="assets/js/common.js"></script>
+<script src="assets/js/dashboard.js"></script>
+</body></html>

@@ -1,0 +1,479 @@
+[
+  {
+    "report": {
+      "sector": "NOC",
+      "weekStart": "2026-08-24",
+      "weekEnd": "2026-08-30",
+      "overallStatus": "On Track",
+      "executiveSummary": "Network and infrastructure services remained stable. Student Guide server preparation was completed and capacity monitoring continued with no critical availability events."
+    },
+    "sectorKpis": [
+      {
+        "key": "networkAvailability",
+        "label": "Network Availability",
+        "unit": "%",
+        "target": 99.9,
+        "direction": "min",
+        "value": 99.97,
+        "status": "green"
+      },
+      {
+        "key": "internetAvailability",
+        "label": "Internet Availability",
+        "unit": "%",
+        "target": 99.9,
+        "direction": "min",
+        "value": 99.94,
+        "status": "green"
+      },
+      {
+        "key": "majorOutages",
+        "label": "Major Outages",
+        "unit": "",
+        "target": 0,
+        "direction": "max",
+        "value": 0,
+        "status": "green"
+      },
+      {
+        "key": "capacityUtilization",
+        "label": "Peak Capacity Utilization",
+        "unit": "%",
+        "target": 80,
+        "direction": "max",
+        "value": 67,
+        "status": "green"
+      }
+    ],
+    "highlights": [
+      {
+        "type": "Internal",
+        "title": "Student Guide server prepared",
+        "status": "Completed",
+        "impact": "Infrastructure ready for deployment."
+      }
+    ],
+    "projects": [
+      {
+        "name": "Student Guide Infrastructure",
+        "progress": 95,
+        "status": "On Track",
+        "week": "Server build completed.",
+        "next": "Production handover.",
+        "date": "2026-09-03"
+      },
+      {
+        "name": "Network Monitoring Enhancement",
+        "progress": 72,
+        "status": "On Track",
+        "week": "Threshold review completed.",
+        "next": "Alert tuning.",
+        "date": "2026-09-10"
+      }
+    ],
+    "incidents": [
+      {
+        "name": "Intermittent wireless degradation",
+        "severity": "Medium",
+        "impact": "Limited users in one area",
+        "status": "Resolved",
+        "owner": "NOC",
+        "eta": "2026-08-28"
+      }
+    ],
+    "risks": [
+      {
+        "name": "Hardware lead time for selected network components",
+        "impact": "Medium",
+        "prob": "Medium",
+        "mit": "Maintain minimum stock.",
+        "esc": "No"
+      }
+    ],
+    "cioItems": [],
+    "priorities": [
+      {
+        "priority": "Complete Student Guide production handover",
+        "owner": "NOC",
+        "date": "2026-09-03",
+        "status": "On Track"
+      }
+    ]
+  },
+  {
+    "report": {
+      "sector": "SOC",
+      "weekStart": "2026-08-24",
+      "weekEnd": "2026-08-30",
+      "overallStatus": "On Track",
+      "executiveSummary": "Security monitoring remained stable. Email classification activities progressed and no critical security incident requiring executive escalation was reported."
+    },
+    "sectorKpis": [
+      {
+        "key": "criticalIncidents",
+        "label": "Critical Security Incidents",
+        "unit": "",
+        "target": 0,
+        "direction": "max",
+        "value": 0,
+        "status": "green"
+      },
+      {
+        "key": "openCriticalVulnerabilities",
+        "label": "Open High/Critical Vulnerabilities",
+        "unit": "",
+        "target": 0,
+        "direction": "max",
+        "value": 1,
+        "status": "amber"
+      },
+      {
+        "key": "patchCompliance",
+        "label": "Patch Compliance",
+        "unit": "%",
+        "target": 95,
+        "direction": "min",
+        "value": 96.4,
+        "status": "green"
+      },
+      {
+        "key": "monitoringCoverage",
+        "label": "Security Monitoring Coverage",
+        "unit": "%",
+        "target": 99,
+        "direction": "min",
+        "value": 99.6,
+        "status": "green"
+      }
+    ],
+    "highlights": [
+      {
+        "type": "Internal",
+        "title": "Email classification implementation progressed",
+        "status": "In Progress",
+        "impact": "Supports data protection and governance."
+      }
+    ],
+    "projects": [
+      {
+        "name": "Email Classification",
+        "progress": 78,
+        "status": "On Track",
+        "week": "Classification mapping reviewed.",
+        "next": "Complete policy validation.",
+        "date": "2026-09-08"
+      }
+    ],
+    "incidents": [
+      {
+        "name": "Suspicious login attempts",
+        "severity": "High",
+        "impact": "No confirmed account compromise",
+        "status": "Monitoring",
+        "owner": "SOC",
+        "eta": "2026-09-01"
+      }
+    ],
+    "risks": [
+      {
+        "name": "Delayed patching on selected legacy systems",
+        "impact": "High",
+        "prob": "Medium",
+        "mit": "Coordinate maintenance window.",
+        "esc": "No"
+      }
+    ],
+    "cioItems": [],
+    "priorities": [
+      {
+        "priority": "Complete email classification validation",
+        "owner": "SOC",
+        "date": "2026-09-08",
+        "status": "On Track"
+      }
+    ]
+  },
+  {
+    "report": {
+      "sector": "CCCU",
+      "weekStart": "2026-08-24",
+      "weekEnd": "2026-08-30",
+      "overallStatus": "Attention Required",
+      "executiveSummary": "Application and integration work progressed, including NELC integration and Moodle maintenance. One vendor dependency requires management attention to avoid schedule impact."
+    },
+    "sectorKpis": [
+      {
+        "key": "applicationAvailability",
+        "label": "Application Availability",
+        "unit": "%",
+        "target": 99.5,
+        "direction": "min",
+        "value": 99.71,
+        "status": "green"
+      },
+      {
+        "key": "slaCompliance",
+        "label": "Request SLA Compliance",
+        "unit": "%",
+        "target": 95,
+        "direction": "min",
+        "value": 93.8,
+        "status": "amber"
+      },
+      {
+        "key": "highPriorityIssues",
+        "label": "Open High-Priority App Issues",
+        "unit": "",
+        "target": 2,
+        "direction": "max",
+        "value": 3,
+        "status": "amber"
+      },
+      {
+        "key": "integrationMilestones",
+        "label": "Integration Milestones On Track",
+        "unit": "%",
+        "target": 90,
+        "direction": "min",
+        "value": 82,
+        "status": "red"
+      }
+    ],
+    "highlights": [
+      {
+        "type": "Internal",
+        "title": "E-learning periodic maintenance completed",
+        "status": "Completed",
+        "impact": "Improved LMS stability."
+      },
+      {
+        "type": "External",
+        "title": "NELC integration testing advanced",
+        "status": "In Progress",
+        "impact": "Progressed external integration."
+      }
+    ],
+    "projects": [
+      {
+        "name": "NELC Integration",
+        "progress": 63,
+        "status": "Attention Required",
+        "week": "API testing continued.",
+        "next": "Resolve mapping dependency.",
+        "date": "2026-09-12"
+      },
+      {
+        "name": "Exam Center Plugin",
+        "progress": 68,
+        "status": "On Track",
+        "week": "Configuration review completed.",
+        "next": "UAT.",
+        "date": "2026-09-14"
+      }
+    ],
+    "incidents": [
+      {
+        "name": "Vendor response delay on integration issue",
+        "severity": "High",
+        "impact": "May delay integration milestone",
+        "status": "Open",
+        "owner": "CCCU",
+        "eta": "2026-09-04"
+      }
+    ],
+    "risks": [
+      {
+        "name": "NELC integration dependency remains unresolved",
+        "impact": "High",
+        "prob": "High",
+        "mit": "Escalate vendor.",
+        "esc": "Yes"
+      }
+    ],
+    "cioItems": [
+      {
+        "type": "Vendor",
+        "action": "Support escalation with vendor to resolve NELC integration dependency.",
+        "urg": "High",
+        "reason": "Current delay may affect the planned integration milestone.",
+        "date": "2026-09-02"
+      }
+    ],
+    "priorities": [
+      {
+        "priority": "Resolve NELC integration dependency",
+        "owner": "CCCU",
+        "date": "2026-09-04",
+        "status": "At Risk"
+      }
+    ]
+  },
+  {
+    "report": {
+      "sector": "AAU",
+      "weekStart": "2026-08-24",
+      "weekEnd": "2026-08-30",
+      "overallStatus": "On Track",
+      "executiveSummary": "Administrative applications and support activities remained stable. Current work is progressing without a critical blocker requiring executive action."
+    },
+    "sectorKpis": [
+      {
+        "key": "serviceAvailability",
+        "label": "Service Availability",
+        "unit": "%",
+        "target": 99.5,
+        "direction": "min",
+        "value": 99.82,
+        "status": "green"
+      },
+      {
+        "key": "slaCompliance",
+        "label": "Request SLA Compliance",
+        "unit": "%",
+        "target": 95,
+        "direction": "min",
+        "value": 96.1,
+        "status": "green"
+      },
+      {
+        "key": "criticalRequests",
+        "label": "Open Critical Requests",
+        "unit": "",
+        "target": 0,
+        "direction": "max",
+        "value": 0,
+        "status": "green"
+      },
+      {
+        "key": "plannedActivities",
+        "label": "Planned Activities Completed",
+        "unit": "%",
+        "target": 90,
+        "direction": "min",
+        "value": 92,
+        "status": "green"
+      }
+    ],
+    "highlights": [
+      {
+        "type": "Internal",
+        "title": "Administrative application support completed",
+        "status": "Completed",
+        "impact": "Maintained continuity of administrative services."
+      }
+    ],
+    "projects": [
+      {
+        "name": "Administrative Workflow Improvement",
+        "progress": 82,
+        "status": "On Track",
+        "week": "Workflow review completed.",
+        "next": "Deploy approved changes.",
+        "date": "2026-09-07"
+      }
+    ],
+    "incidents": [],
+    "risks": [
+      {
+        "name": "User adoption for revised workflow",
+        "impact": "Low",
+        "prob": "Medium",
+        "mit": "Focused communication and guidance.",
+        "esc": "No"
+      }
+    ],
+    "cioItems": [],
+    "priorities": [
+      {
+        "priority": "Deploy workflow improvement",
+        "owner": "AAU",
+        "date": "2026-09-07",
+        "status": "On Track"
+      }
+    ]
+  },
+  {
+    "report": {
+      "sector": "OPS",
+      "weekStart": "2026-08-24",
+      "weekEnd": "2026-08-30",
+      "overallStatus": "On Track",
+      "executiveSummary": "Operations services remained stable during the reporting period. Routine operational follow-up, service coordination, and continuity activities progressed without critical escalation."
+    },
+    "sectorKpis": [
+      {
+        "key": "serviceAvailability",
+        "label": "Operational Service Availability",
+        "unit": "%",
+        "target": 99.5,
+        "direction": "min",
+        "value": 99.76,
+        "status": "green"
+      },
+      {
+        "key": "actionClosure",
+        "label": "Weekly Action Closure Rate",
+        "unit": "%",
+        "target": 90,
+        "direction": "min",
+        "value": 88,
+        "status": "amber"
+      },
+      {
+        "key": "highPriorityActions",
+        "label": "Pending High-Priority Actions",
+        "unit": "",
+        "target": 2,
+        "direction": "max",
+        "value": 2,
+        "status": "green"
+      },
+      {
+        "key": "crossSectorSla",
+        "label": "Cross-Sector SLA Compliance",
+        "unit": "%",
+        "target": 95,
+        "direction": "min",
+        "value": 96,
+        "status": "green"
+      }
+    ],
+    "highlights": [
+      {
+        "type": "Internal",
+        "title": "Weekly operations coordination completed",
+        "status": "Completed",
+        "impact": "Improved visibility across operational activities."
+      }
+    ],
+    "projects": [
+      {
+        "name": "Operational Process Improvement",
+        "progress": 70,
+        "status": "On Track",
+        "week": "Reviewed operational workflow.",
+        "next": "Finalize improvement actions.",
+        "date": "2026-09-10"
+      }
+    ],
+    "incidents": [],
+    "risks": [
+      {
+        "name": "Dependency on cross-sector response times",
+        "impact": "Medium",
+        "prob": "Medium",
+        "mit": "Track dependencies through weekly action register.",
+        "esc": "No"
+      }
+    ],
+    "cioItems": [],
+    "priorities": [
+      {
+        "priority": "Finalize operational action register",
+        "owner": "Operations",
+        "date": "2026-09-05",
+        "status": "On Track"
+      }
+    ]
+  }
+]

@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ICTD Sector Weekly Report</title>
+<link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="brand"><div class="brand-mark">ICT</div><div><h1>ICTD Weekly Report</h1><p>Sector Reporting Workspace</p></div></div>
+  <div class="nav-title">Form</div>
+  <nav class="nav">
+    <a class="active" href="#info">▣ Report Information</a>
+    <a href="#sector-kpis">◎ Sector KPIs</a>
+    <a href="#summary">◫ Executive Summary</a>
+    <a href="#highlights">✦ Highlights</a>
+    <a href="#projects">◆ Projects & Activities</a>
+    <a href="#incidents">⚠ Incidents & Issues</a>
+    <a href="#risks">△ Risks & Blockers</a>
+    <a href="#cio">★ CIO Attention</a>
+    <a href="#priorities">→ Next Week</a>
+    <a href="index.html">← CIO Dashboard</a>
+  </nav>
+  <div class="side-note">Keep entries concise and management-focused. Routine ticket detail should remain in operational systems.</div>
+</aside>
+
+<main>
+  <div class="topbar">
+    <div class="title"><h2>Sector Weekly Update <span class="badge">STEP 4</span></h2><p>Structured weekly input for NOC, SOC, CCCU, AAU, and Operations.</p></div>
+    <div class="actions"><button class="btn" onclick="window.print()">Print Preview</button><button class="btn soft" onclick="resetForm()">Reset</button><a class="btn primary" href="index.html" style="text-decoration:none">CIO Dashboard</a></div>
+  </div>
+
+  <div class="progress-wrap"><div style="flex:1"><div class="helper">Report completion</div><div class="progress-track"><div class="progress-bar" id="progressBar"></div></div></div><div class="progress-num" id="progressNum">0%</div></div>
+
+  <section class="panel" id="info"><div class="panel-head"><div><h3>Report Information</h3><p>Reporting period, sector, and overall health.</p></div><div class="section-no">01</div></div><div class="panel-body"><div class="grid cols-3">
+    <div><label class="req">Sector</label><select id="sector" data-required onchange="renderSectorKpis();updateProgress()"><option value="">Select sector</option><option value="NOC">NOC</option><option value="SOC">SOC</option><option value="CCCU">CCCU</option><option value="AAU">AAU</option><option value="OPS">Operations</option></select></div>
+    <div><label class="req">Week Start</label><input id="weekStart" data-required type="date" value="2026-08-24" oninput="updateProgress()"></div>
+    <div><label class="req">Week End</label><input id="weekEnd" data-required type="date" value="2026-08-30" oninput="updateProgress()"></div>
+  </div><div style="margin-top:16px"><label class="req">Overall Sector Status</label><div class="status-choice"><label><input type="radio" name="overallStatus" value="On Track" onchange="updateProgress()"><span class="dot" style="background:var(--green)"></span>On Track</label><label><input type="radio" name="overallStatus" value="Attention Required" onchange="updateProgress()"><span class="dot" style="background:var(--amber)"></span>Attention Required</label><label><input type="radio" name="overallStatus" value="Critical" onchange="updateProgress()"><span class="dot" style="background:var(--red)"></span>Critical</label></div></div></div></section>
+
+  <section class="panel" id="sector-kpis"><div class="panel-head"><div><h3>Sector-Specific KPIs</h3><p>KPIs change automatically according to the selected sector.</p></div><div class="section-no">02</div></div><div class="panel-body"><div class="alert" id="kpiIntro" style="border-left-color:var(--blue);background:var(--soft-blue);color:var(--text)">Select a sector above.</div><div class="kpi-entry-grid" id="kpiEntryGrid" style="margin-top:14px"></div></div></section>
+
+  <section class="panel" id="summary"><div class="panel-head"><div><h3>Executive Summary</h3><p>3–5 lines focused on what changed and what matters.</p></div><div class="section-no">03</div></div><div class="panel-body"><label class="req">Weekly Executive Comment</label><textarea id="executiveSummary" data-required maxlength="700" placeholder="What changed this week, what matters, and whether management attention is required." oninput="updateProgress()"></textarea></div></section>
+
+  <section class="panel" id="highlights"><div class="panel-head"><div><h3>Highlights</h3><p>Internal and external highlights.</p></div><div class="section-no">04</div></div><div class="panel-body"><div class="repeat-list" id="highlightList"></div><button class="add-row" onclick="addHighlight()">＋ Add Highlight</button></div></section>
+
+  <section class="panel" id="projects"><div class="panel-head"><div><h3>Projects & Major Activities</h3><p>Progress, current movement, next step, and target date.</p></div><div class="section-no">05</div></div><div class="panel-body"><div class="table-wrap"><table><thead><tr><th>Project / Activity</th><th>Progress</th><th>Status</th><th>This Week</th><th>Next Step</th><th>Target Date</th><th></th></tr></thead><tbody id="projectRows"></tbody></table></div><button class="add-row" onclick="addProject()">＋ Add Project / Activity</button></div></section>
+
+  <section class="panel" id="incidents"><div class="panel-head"><div><h3>Incidents & Operational Issues</h3><p>Only significant issues.</p></div><div class="section-no">06</div></div><div class="panel-body"><div class="table-wrap"><table><thead><tr><th>Issue</th><th>Severity</th><th>Impact</th><th>Status</th><th>Owner</th><th>ETA</th><th></th></tr></thead><tbody id="incidentRows"></tbody></table></div><button class="add-row" onclick="addIncident()">＋ Add Incident / Issue</button></div></section>
+
+  <section class="panel" id="risks"><div class="panel-head"><div><h3>Risks & Blockers</h3><p>Anything that can delay delivery or reduce service quality.</p></div><div class="section-no">07</div></div><div class="panel-body"><div class="repeat-list" id="riskList"></div><button class="add-row" onclick="addRisk()">＋ Add Risk / Blocker</button></div></section>
+
+  <section class="panel" id="cio"><div class="panel-head"><div><h3>CIO Attention Required</h3><p>Decision, approval, escalation, vendor, resource, or cross-functional action.</p></div><div class="section-no">08</div></div><div class="panel-body"><div class="alert"><b>Management rule:</b> leave empty if no CIO action is required.</div><div class="repeat-list" id="cioList" style="margin-top:12px"></div><button class="add-row" onclick="addCioItem()">＋ Add CIO Attention Item</button></div></section>
+
+  <section class="panel" id="priorities"><div class="panel-head"><div><h3>Next Week Priorities</h3><p>Top forward commitments.</p></div><div class="section-no">09</div></div><div class="panel-body"><div class="table-wrap"><table><thead><tr><th>Priority</th><th>Owner</th><th>Due Date</th><th>Status</th><th></th></tr></thead><tbody id="priorityRows"></tbody></table></div><button class="add-row" onclick="addPriority()">＋ Add Priority</button></div></section>
+
+  <div class="footer-actions"><div class="save-state" id="saveState">Draft not yet saved.</div><div class="right-actions"><button class="btn" onclick="saveDraft()">Save Draft</button><button class="btn primary" onclick="exportJSON()">Export Sector JSON</button></div></div>
+</main>
+</div>
+<div class="toast" id="toast"></div>
+<script src="assets/js/common.js"></script>
+<script src="assets/js/sector-form.js"></script>
+</body></html>
