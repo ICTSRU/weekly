@@ -2,6 +2,12 @@
 
 All notable changes to the ICTD Weekly Status Report app.
 
+## v5.8
+
+- **Removed the blue ICTD app mark** from the purple header band. The ICTD logo already sits in the white brand bar above it, so the page no longer shows two ICTD logos at different alignments. Its CSS rules and embedded base64 copy went with it — **the page is 29 KB smaller** (192 KB → 163 KB).
+- The title now starts at the left edge of the measure, aligned to the pixel with the ICTD logo above it (both at 106px), and the user chip aligns with the university logo on the right.
+- **Fixed: the network pattern only appeared on the left.** The page carried its own `.topbar::before` — an old decorative sheen, `width:180px`, pinned left and skewed — and that is the same pseudo-element the brand kit paints the network on. Both selectors have equal specificity, so the kit won only on the properties it *declares*; it never sets `width` or `transform`, so the sheen's `width:180px` and `skewX(-18deg)` survived and clipped the pattern into a narrow strip. The old rule is removed, and the pattern now spans the full band (verified: computed width 1280px, no transform, repeating, still animating).
+
 ## v5.7 — header band matched to the kit
 
 v5.6 linked the kit correctly but kept the app's own compact, full-bleed header. Compared against the kit's own demo page, three things were off:
