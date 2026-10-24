@@ -2,6 +2,17 @@
 
 All notable changes to the ICTD Weekly Status Report app.
 
+## v5.7 — header band matched to the kit
+
+v5.6 linked the kit correctly but kept the app's own compact, full-bleed header. Compared against the kit's own demo page, three things were off:
+
+- **The band's content now sits in the same 1100px measure** as the white brand bar and the content cards. Before, the brand bar was inset while the purple band ran edge to edge, so the logos looked misaligned with everything below them.
+- **The band is taller** (127px, padding `26px 16px 32px` as the kit's hero uses). The network pattern is a 520 × 200 tile — in a 70px band only the top third was visible, which is why it barely read.
+- **A 6px blue strip** closes the band, as the kit's hero does, replacing the old 3px purple border.
+- Title scaled up to the kit's `clamp(21px, 2.6vw, 30px)`.
+
+No change to the brand kit itself — the re-sent archive was byte-for-byte identical to the one applied in v5.6 (same MD5 on all five files).
+
 ## v5.6 — SRU Brand Kit v1.0
 
 Applies the shared brand kit to both pages of the platform. The kit's CSS and logos are **linked** from `ictsru.github.io/brand`, not copied, so a future change there restyles this platform without touching it.
