@@ -1,0 +1,331 @@
+# Changelog
+
+All notable changes to the ICTD Weekly Status Report app.
+
+## v5.6 — SRU Brand Kit v1.0
+
+Applies the shared brand kit to both pages of the platform. The kit's CSS and logos are **linked** from `ictsru.github.io/brand`, not copied, so a future change there restyles this platform without touching it.
+
+- **White brand bar** above the purple header: ICTD logo left, university logo right, both 40 px — matching the kit. The **university logo was not on this page at all before**; the header carried the blue ICTD wordmark and the ICTD Arabic logo.
+- The blue ICTD wordmark stays in the purple band as the app mark, resized to the kit's 60 px.
+- **SRU Tech Background · Network** applied to the header band (`sru-tech-bg`) and the footer (`sru-tech-bg-dark`) — purple→blue gradient with the drifting network overlay, which stops for reduced-motion and disappears in print.
+- **Footer rebuilt to the kit layout**: support box (`servicedesk@sr.edu.sa`), the version line, and the ITOC badge linking to the forms hub. Moved out of `.container` so it spans the full width.
+- The same treatment on the **sign-in landing page**: kit stylesheets linked, footer on the dark tech background, logos pulled from the shared source.
+- Stylesheets are linked **after** the page's own `<style>`, as the kit requires, so the kit wins.
+
+**Fallbacks, because the brand repo may not be published yet.** If `ictsru.github.io/brand` is unreachable, the CSS simply does not apply and both pages keep their own purple — but the logos would vanish, so all three are embedded as base64 and swapped in by an `onerror` handler. Verified with the kit blocked: every logo still renders and the pages stay intact.
+
+## v5.5 — sector list changes
+
+- **Removed the ICTD sector.**
+- **Renamed M. ElMahdy to ITOC** (ITOC — IT Operations Center). The sector *code* changed from `MElMahdy` to `ITOC`, not just the label: the sheet holds no `MElMahdy` rows — the personal sectors have never been used — so there was nothing to orphan and no migration needed.
+- **Added an Atef sector**, owned by `a.elnadi@sr.edu.sa`, with its own colour (`--p6`).
+- Still twelve sectors, so the dashboard keeps its clean 6 × 2 grid.
+- Applied in all five places a sector is defined: the `SECTORS` array, the form's `<select>`, the `SectorOwners` defaults in `Code.gs`, the n8n `Build Email` node, and the Apps Script mailer fallback.
+
+**Existing ICTD rows stay in the sheet** — nothing was deleted — but they no longer appear on the dashboard or in the report, since that sector no longer exists. Historical weeks will therefore show one fewer sector than they did.
+
+## v5.4
+
+- Added **Atef Elnadi** to the shared people list, so he appears in **Submitted By**, **Presented By** (Coffee with IT) and **Supported By** (Event Support). Inserted in alphabetical order.
+- This resolved the open question from v5.2: the access matrix gave NOC and SOC to `n.nawaz` **and "Atef"**, and that name now matches `a.elnadi@sr.edu.sa`, already in the allow-list. Both sectors' default owners are now `n.nawaz@sr.edu.sa, a.elnadi@sr.edu.sa`, and his `AllowedUsers` row is labelled "Atef Elnadi — NOC / SOC".
+
+**If you have already run `setupSectorOwners`,** the new default will not apply: the function never overwrites existing rows. Add `a.elnadi@sr.edu.sa` to the `owners` cell for NOC and SOC in the `SectorOwners` tab by hand.
+
+## v5.3
+
+- **Fixed: every server call was failing.** `gsCall()` invoked the method as `runner[fn].apply(null, args)`. `google.script.run` returns a runner object whose generated methods need `this` to be that runner, so a detached `this` throws — submit, load, upload and the CIO email were all broken in the deployed app. The runner is now kept in a variable and the method called on it. The test mock had ignored `this`, which is why this passed locally; the mock now rejects a detached call, and reproducing v5.2 against it shows the throw.
+- `gsCall()` also reports a clear error if a server function is missing, which is what a stale deployment looks like.
+- Hardened the **Submitted By** list: one `populateSubmittedBy()` helper used by all three call sites, idempotent, wrapped in try/catch, and re-run on `window.load` so an earlier failure cannot leave it empty.
+- Pinned `color-scheme: light` and gave `select` / `option` explicit colours. Native dropdown popups are drawn by the OS, so in a dark-mode browser they paint dark while the option text stayed dark — which reads as an empty black strip.
+- Guarded `applySectorPermission()` so it can never interrupt form setup.
+
+## v5.2 — sector ownership
+
+Applies `Access_weekely_report_matrix.xlsx`, so two managers can no longer overwrite each other's row.
+
+- **Saving is now limited to a sector's owner.** Everyone who can sign in still reads every sector; only the owner (or Mohamed ElMahdy, the matrix's "Or by Mahdy" column) can submit a given one.
+- Enforced **server-side in `apiSubmit`**, which is the real guard — `google.script.run` is reachable without the page. The form also disables Save and shows a read-only notice naming the sector, but that is only UX.
+- Ownership lives in a new **`SectorOwners`** sheet tab (`sector · label · owners · notes`), seeded from the matrix by `setupSectorOwners()`. Owners can be changed there without a redeploy; `ALL` means any allow-listed user. Changes apply within two minutes.
+- If the tab is missing or empty the code falls back to the matrix baked into `Code.gs`, so a fresh install is enforced rather than silently open. An unknown sector code is refused, never defaulted open.
+- `apiEditableSectors()` tells the page what the signed-in user may save; the list is also rendered into the page at load.
+
+**One cell needs completing.** The matrix gives NOC and SOC to `n.nawaz` **and "Atef"**, and no address in the ICTD list clearly matches that name. Rather than guess an address and hand someone edit rights by accident, both sectors are seeded with `n.nawaz@sr.edu.sa` only and a note in the `notes` column. Add Atef's e-mail to the `owners` cell for NOC and SOC — comma-separated, no redeploy needed.
+
+## v5.1
+
+- Hardcoded the live Apps Script web app URL into the landing page's `CONFIG.WEB_APP_URL`, so the sign-in button and the "skip this screen" shortcut both work with no further editing.
+- Version lifted to 5.1 across the landing page, `Index.html` and `APP_VERSION` in `Code.gs`, so the page, the access log and the landing page all report the same number.
+
+## v5.0 — secured access
+
+Major: the report now runs as an Apps Script web app behind a university Google sign-in. SRU Secure Access Kit v1.4 applied.
+
+- **Access is restricted to @sr.edu.sa accounts** on an `AllowedUsers` list, enforced by the Apps Script deployment ("Anyone within Sulaiman Al Rajhi University") plus a server-side domain check. Non-university and non-listed accounts get the branded refusal page.
+- **Every sign-in is logged** to the `AccessLog` tab — e-mail, date, time, Arabic day, result — with 30-minute de-duplication and a 180-day purge.
+- **All four n8n webhook URLs left the browser.** They used to sit in page source on a public GitHub Pages site, so anyone who viewed source could read every report, overwrite sheet rows, upload into the university Drive folder, or mail the CIO. They now live in `Code.gs` and are called with `UrlFetchApp` behind `requireSruUser_()`: `apiGetData`, `apiSubmit`, `apiUpload`, `apiSendEmail`.
+- The page's four `fetch()` calls became `google.script.run` calls through one `gsCall()` promise bridge. Opening the file outside the web app now gives a clear message instead of a silent failure.
+- **Submissions are stamped with the signed-in account** (`savedBy`) server-side, independent of the form's "Submitted By" dropdown.
+- The dashboard's first paint uses rows rendered into the page by `doGet`, so there is no round trip on load; a failure there falls back to a normal `apiGetData` call.
+- The header shows the signed-in university account; hidden in print.
+- GitHub Pages now serves the **branded ITOC sign-in landing page** instead of the app. It holds no data and no internal URLs.
+
+**Still to do after deploying:** rotate the four n8n webhook paths. The old URLs were public for weeks and remain callable by anyone who copied them — removing them from the page does not revoke them.
+
+## v4.7
+
+- **Event details now appear, not just a count.** The Event Support card previously showed only "Events Supported: 1"; it now lists each event with its name, date, time, location, attendee count, who supported it, and any comment — on the dashboard, in the compiled report, in the email and in the PDF.
+- The dashboard card reuses the existing `renderEvents()` rather than introducing a second renderer, so the card and the compiled report cannot disagree.
+- **Coffee with IT sessions got the same treatment** in the email and PDF: topic, date, duration, attendance type and presenter, instead of only "Sessions Held: 3".
+- Event and session text is HTML-escaped before rendering, so a stray `<` or a pasted tag in an event name cannot break the email or inject markup.
+- Malformed JSON in the Events or Sessions column degrades to a count of 0 rather than failing the whole send.
+
+## v4.6
+
+- **Event Support now keeps the standard fields.** Key Activities, Issues / Risk, Support Needed and Tasks for Next Week appear for the Events sector in the form, the dashboard, the compiled report, the email and the PDF — alongside the Events Supported count, which is unchanged.
+- This was not a display bug. The form was **hiding the whole generic section for Events and blanking those four values on save**, so an Event Support manager could not record key activities at all, and anything previously entered was wiped on the next submission. Fixed at the source, then in all four renderers.
+- Issues / Risk for Events is flagged bold red like every other sector, which matters — an event week is exactly when something like a failed sound system needs to reach the CIO.
+- **Coffee with IT is unchanged** and stays dedicated-only: Sessions Held, Attachments, Submitted By, with its status still derived from the session count.
+
+## v4.5
+
+- **The PDF attachment is back**, alongside the inline report. The email now carries both: the full report rendered in the body, and a PDF of the same report attached for filing and forwarding.
+- n8n Cloud has no HTML-to-PDF node, so the workflow posts the print HTML to a small Apps Script endpoint (`HtmlToPdf.gs` v1.0) that returns it as base64, which n8n attaches via Gmail. University report data never leaves Google or n8n — no third-party converter.
+- **One renderer, two outputs.** The `Build Email` node now emits `html` (email body) and `pdfHtml` (print), both generated by the same `sectorCards()` function, so the attachment and the email cannot drift apart. They differ only in wrapper: the PDF drops the page background and the CTA button and adds a "Generated" timestamp.
+- The Apps Script endpoint knows nothing about the report — it converts HTML to PDF and nothing else — and is gated on a shared token, since it is a publicly reachable URL.
+- Workflow bumped to v1.1: new `Render PDF` and `PDF to File` nodes between `Has Data?` and `Send to CIO`.
+- The note under the button now mentions the PDF attachment.
+
+## v4.4
+
+- Wired the page to the live n8n endpoint: `MAILER_URL` is now set to `https://elmahdy2020.app.n8n.cloud/webhook/ictd-report-email`. The Email Report to CIO button is live once the workflow is Active.
+- Fixed the result colours being overridden while the pointer stayed on the button. `button.btn.btn-email:hover:not(:disabled)` carries two extra pseudo-classes, so it out-specified `.sent` and `.failed` — a button that had just reported **Sent ✓** still showed hover blue, because the user's mouse is of course still on the button they just clicked. The success and failure states now match the hover selector.
+
+## v4.3
+
+- Moved the CIO email from Apps Script to **n8n**, as a new importable workflow `ICTD Weekly Report — Email to CIO` (v1.0). The schedule trigger and the page button share one code path, so the two emails cannot drift apart.
+- **The report is now rendered inline in the email body instead of attached as a PDF.** n8n has no native HTML-to-PDF node, and routing university report data through a third-party converter was not worth a PDF. The inline report also reads better on a phone.
+- **Corrected which week the Sunday run sends.** It now reports on the week of the Sunday it fires — firing Sun 04 Oct 2026 sends **W40 — Sun 04 Oct 2026**. The previous v4.2 assumption (the week that just ended) was wrong: the app marks current+7 as the ACTIVE WEEK, so managers fill the upcoming week in advance and that Sunday's data is already in the sheet. `WeeklyReportMailer.gs` was changed to `WEEKS_BACK: 0` to match.
+- Button relabelled **Email Report to CIO** (no longer "PDF"), and the note under it now says the automatic send covers that same week.
+- If a week has no submissions, nothing is sent — a `Has Data?` branch stops it, so the CIO never receives an empty report.
+- The Apps Script mailer is kept as a fallback for anyone who wants a real PDF attachment; both now agree on the week.
+
+## v4.2
+
+- Added an **Email PDF to CIO** button to the Compiled Report page. It sends the selected week's report to **nabounar@sr.edu.sa**, CC **m.elmahdy@sr.edu.sa**, with a link to https://ictsru.github.io/ictd-weekly-report/ in the email.
+- Added an **automatic send every Sunday at 08:00** (Asia/Riyadh), covering the week that just ended.
+- Both are served by one new Apps Script mailer (`WeeklyReportMailer.gs`, v1.0) attached to the `ICTD Weekly Status Report - Data` sheet. The PDF is built **server-side** — at 08:00 on a Sunday no browser is open, so the schedule cannot rely on the page, and sharing one code path means the manual and scheduled emails can never drift apart.
+- The button confirms before sending, then shows **Sent ✓** in green with the week and sector count, or **Failed** in red with the reason. It reports **Not configured** rather than failing silently while `MAILER_URL` is unset.
+- The request is sent as `text/plain` deliberately: Apps Script web apps cannot answer a CORS preflight, which `application/json` would trigger.
+- The email body leads with the RAG counts and names any sector At Risk or Critical, so the CIO sees the headline before opening the attachment.
+- Issues / Risk is rendered bold red in the PDF too, matching v4.1 in the app.
+
+## v4.1
+
+- Renamed the label to **Issues / Risk** in all three places it appears: the submission form, the dashboard sector cards, and the compiled CIO report. The dashboard previously read just "Issues".
+- **Any sector with content under Issues / Risk now shows it in bold red**, so a risk is visible at a glance on the dashboard and in the printed report instead of reading like every other line.
+- In the form, the **Issues / Risk label turns bold red with a red `!` badge** as soon as the list holds anything, and returns to normal when it is cleared.
+- Blank rows do not trigger the flag. The empty starter row the form always shows, whitespace-only text, and stored rows that are just a number with no text are all correctly treated as "no risk".
+- The flag tracks the list live through a `MutationObserver`, so it stays correct when rows are added, removed with the ✕, replaced by Load My Existing Entry, or cleared after a save.
+- Red is forced in print with `print-color-adjust: exact`, so risks stay red in the PDF sent to the CIO.
+
+## v4.0
+
+- Added the **ITOC (IT Operations Center) logo to the bottom-left of the footer**, hyperlinked to the ITOC forms hub at `https://ictsru.github.io/ITOC/#forms` (opens in a new tab, `rel="noopener noreferrer"`).
+- The footer is now a three-column grid: logo left, version text centred, with a rule above it. The version line stays exactly centred regardless of the logo's width.
+- The logo is **embedded as a base64 PNG**, so the file stays fully self-contained and the footer never depends on a CDN or a relative image path.
+- The white background was made transparent and the image trimmed and resized to 292x120 (rendered at 40px tall), so it sits cleanly on the page background at retina sharpness for ~28 KB.
+- On screens narrower than 640px the footer stacks and centres. Hover lifts the logo slightly; this is disabled for reduced-motion users and in print.
+
+## v3.9
+
+- The **Sector dropdown now glows** with a soft pulsing purple halo and a purple border, so it reads as the obvious next choice after the week.
+- The glow stops while the dropdown is focused, is replaced by a static halo for anyone who has reduced motion turned on, and is removed entirely when printing.
+
+## v3.8
+
+- Every week in the Week Of (Sunday) dropdown now reads **plain black at normal weight**, so only the **ACTIVE WEEK** stands out in red bold. The closed selector follows the same rule — red bold while the active week is chosen, black once another week is picked.
+
+## v3.7
+
+- The **week after the current one is now marked as the ACTIVE WEEK** in the Week Of (Sunday) dropdown — shown in red bold with a star, both in the open list and in the closed selector.
+- That active week is now **preselected when the form loads**, instead of the current week. The current week keeps its "(current week)" note.
+- The active week is always computed as current week + 7 days, so it rolls forward on its own — verified across a Sunday boundary and the year end.
+
+## v3.6
+
+- Moved **Load My Existing Entry** up beside the Sector dropdown, so it now sits with the week and sector it acts on rather than at the bottom next to Save Report. The bottom row keeps **Save Report** on its own.
+- On narrow screens the button drops below the dropdown instead of squeezing beside it.
+- **Fixed:** the sector dropdown still read "Mohamed ElMahdy" while the dashboard, trend table and report all showed "M. ElMahdy" — the v3.3 rename missed the dropdown option. All four now match.
+
+## v3.5
+
+- **The Status Trend table is now clickable.**
+  - Clicking a **status dot** switches the Viewing week to that row's week, redraws the sector cards for it, and jumps to that sector's card.
+  - Clicking a **sector column header** jumps to that sector's card in the week currently being viewed.
+  - The destination card flashes briefly so it is easy to spot after the jump.
+- Added a **back-to-top arrow** in the bottom-right corner. It appears once the page is scrolled and returns to the top smoothly. Hidden when printing.
+- The arrow is drawn as inline SVG rather than loaded from the icon CDN, so it still shows if the CDN is unreachable or the file is opened offline.
+
+## v3.4
+
+- Changed the report cover background from baby blue to **light gray**, with the title, date and summary in dark neutral text.
+- **Enlarged the sector chips and laid them out on a six-column grid**, so the twelve sectors fill exactly two full rows edge to edge instead of leaving a ragged gap in the cover box. Larger name text, check mark and status pill.
+- The grid steps down to four, three and two columns on narrower screens so the rows stay even.
+
+## v3.3
+
+- Shortened the **Mohamed ElMahdy** sector label to **M. ElMahdy**. Only the display label changed; the stored sector code is still `MElMahdy`, so existing sheet rows are unaffected.
+- **Sector chips on the report cover are now clickable** — selecting one jumps straight to that sector's section further down the report, with smooth scrolling and a visible keyboard focus ring.
+- **Chips are sorted with submitted sectors first**, then the ones still outstanding; within each group the usual sector order is kept.
+- Changed the report cover background from purple to **baby blue**, with the title, date and summary switched to dark navy so the text stays readable.
+
+## v3.2
+
+- The sector chips on the compiled report cover now show, under each name, a **check mark if that sector submitted** (a dimmed cross if not) together with its **status** — On Track / At Risk / Critical, or "Not submitted".
+- Added a submission count to the cover ("4 of 12 sectors submitted"), so the CIO sees coverage at a glance.
+- **Fixed:** brand colours, status pills and the submitted marks were dropped when printing or exporting to PDF, because the page never set `print-color-adjust`. The new marks would have printed colourless. Colours are now preserved, and chips and report sections no longer split across pages.
+
+## v3.1
+
+- Added five personal sectors: **Mohamed ElMahdy**, **Ammar**, **Nayed**, **Abd Alazez**, and **Azzam**. Each has its own colour, dashboard card, trend column, and section in the compiled report.
+- They use the standard fields (Key Activities, Issues / Risks, Support Needed, Tasks for Next Week) and the manual status buttons, matching NOC / SOC / DSSC / AAU.
+
+## v3.0
+
+- Sectors now display a readable label instead of their internal code: **Coffee with IT** rather than `CoffeeIT`, and **Event Support** rather than `Events`. Applied to the dashboard cards, the trend table headers, the compiled report cover chips, and the "no submission" message.
+- The stored sector codes are unchanged, so existing sheet data is unaffected.
+
+## v2.9
+
+- **Removed the manual Coffee with IT count fields from the ICTD sector.** Since v2.8 the dashboard derives these figures from the Coffee with IT session entries, so the manual fields no longer affected anything and were misleading to fill in.
+- Also removed the matching "Coffee with IT — Attendance" row from the compiled report, and the now-unused styles.
+- The `CoffeeStudent` / `CoffeeStaff` / `CoffeeAdmin` columns are left in the Google Sheet with their existing values, so no historical data is lost. They are simply no longer written to or read.
+
+## v2.8
+
+- **Coffee with IT status is now set automatically from the session count** — 1 or fewer = Critical, 2–3 = At Risk, more than 3 = On Track. The manual status buttons are replaced by a live badge that updates as sessions are added or removed, and the computed value is what gets saved.
+- The dashboard **Coffee with IT KPI strip now reads from the session entries** rather than the manual counts under ICTD. It shows total sessions plus a breakdown by audience (Academic / Student / Admin), and hides itself when no sessions were recorded for that week.
+
+  Note: the manual Coffee with IT count fields under the **ICTD** sector no longer feed the dashboard. They still save to the `CoffeeStudent` / `CoffeeStaff` / `CoffeeAdmin` columns, but nothing displays them.
+
+## v2.7
+
+- Added **Session Date** and **Attendance Email** to the Coffee with IT session entries. Both appear in the compiled CIO report alongside the existing session details.
+- No sheet change was needed: sessions are stored as JSON in the existing `Sessions` column, so older entries without these fields still load correctly.
+
+## v2.6
+
+- **Fixed a timezone bug that could save a report against the wrong week.** Date strings were built with `toISOString()`, which converts to UTC; in Saudi time (UTC+3) any moment before 03:00 local rolled the date back a day, so a report filed early on a Sunday was stored against the previous Saturday and appeared as its own row on the dashboard trend. All week handling now uses local date parts.
+- Weeks are displayed as `W35 — Sun 30 Aug 2026` everywhere — the dashboard week selector, the trend table, the compiled report selector, and the report cover — instead of a bare date.
+- Any stored week value that is not a Sunday is normalised to the Sunday of its week when read, so older or imported rows merge into the correct week instead of creating a phantom column.
+
+## v2.5
+
+- **Event Supported By** is now a dropdown drawing from the same shared `TEAM_NAMES` list as Submitted By and Presented By.
+- As with the other name fields, a value from an older entry that is not on the list is preserved and added to the dropdown when that entry is loaded.
+
+## v2.4
+
+- **Submitted By** and **Presented By** are now dropdown lists instead of free-text fields, drawing from one shared list of team members. This keeps names spelled consistently so they group correctly in reporting.
+- If an older entry contains a name that is no longer on the list, that name is added to the dropdown when the entry is loaded, so existing data is never silently changed.
+
+To edit the list of names, change the `TEAM_NAMES` array near the top of the script in `index.html`.
+
+## v2.3
+
+- The generic fields (Key Activities, Issues / Risks, Support Needed, Tasks for Next Week) are now **hidden for the Coffee with IT and Event Support sectors**, which have their own dedicated fields instead.
+- Those fields are also omitted from the dashboard cards and the compiled report for those two sectors, so their sections show only what is relevant.
+- Anything typed into the generic fields before switching to one of those sectors is not submitted, so no stale text can leak into a Coffee with IT or Event Support entry.
+
+## v2.2
+
+- Added a **Coffee with IT** sector, with its own dashboard card, trend column, and section in the compiled report.
+- Its session entries capture Session Topic, Duration, Type of Attendance (Academic / Student / Admin), and Presented By. Add one entry per session; each card is numbered and titled by the topic.
+- Sessions appear in the compiled CIO report as a formatted list, and as a "Sessions Held" count on the dashboard.
+- Added the `Sessions` sheet column (stored as JSON so all fields round-trip cleanly).
+
+  Note: the Coffee with IT **attendance counts** (Students / Staff / Admin) still live under the **ICTD** sector and feed the dashboard KPI strip. The two are independent.
+
+## v2.1
+
+- Centred the navigation tabs (Submit Report / Dashboard / Compiled Report) in the purple bar instead of left-aligning them.
+
+## v2.0
+
+- **Week Of (Sunday) is now a dropdown of Sundays only**, replacing the free date picker. Every option is guaranteed to be a Sunday, so a mid-week date can no longer be selected by mistake and split a week's data across two entries.
+- Each option shows its ISO week number and full date — for example `W35 — Sun 30 Aug 2026` — with the current week marked and preselected.
+- The list covers 12 past weeks through 4 weeks ahead, so late submissions and advance planning are both possible.
+- Migrated the existing `CCCU` row in the Google Sheet to `DSSC` so its history stays visible under the renamed sector.
+
+## v1.9
+
+- Renamed the **CCCU — Contact Center / Customer Unit** sector to **DSSC — Digital Support and Service Center**, across the submission form, dashboard cards, trend table, and compiled report.
+
+  Note: rows already saved under the old `CCCU` sector code remain in the Google Sheet under that code and will not appear under DSSC.
+
+## v1.8
+
+- Added visual separation on the Dashboard between the Coffee with IT attendance KPIs and the sector status cards: a fading divider line plus a **Sector Status** heading.
+- The divider hides automatically when there are no Coffee with IT figures for the selected week, so the layout stays clean.
+
+## v1.7
+
+- **The form now clears automatically after a successful save.** Activities, issues, support needed, next week's tasks, events, attachments, Coffee with IT counts, status, and Submitted By are all reset, so the next person starts from a blank form with no risk of submitting someone else's data by mistake.
+- The week and sector selections are kept, and the page scrolls back to the top after saving.
+- Fixed spacing above the Event Support and Coffee with IT section headings.
+
+## v1.6
+
+- Moved the **Status Trend** table to the top of the Dashboard, above the sector status cards.
+- Corrected the Dashboard description, which still referred to "all four sectors".
+
+## v1.5
+
+- **Event Support is now its own sector**, alongside NOC, SOC, CCCU, AAU and ICTD. It has its own dashboard card, trend column, and section in the compiled report.
+- The event entry fields appear only when the **Event Support** sector is selected, matching how Coffee with IT appears only for ICTD.
+
+## v1.4
+
+- Added event entry fields: Event Name, Date, Time (From – To), Location, Attendees, Event Supported By, and Comment / Feedback. Add and remove entries freely; each card is numbered and titled by the event name.
+- Events appear in the compiled CIO report as a formatted list, and as an "Events Supported" count on the dashboard.
+- Added the `Events` sheet column (stored as JSON so all fields round-trip cleanly).
+- **Fixed:** the "Add attachment" and "Add event" buttons threw a JavaScript error on every click. The generic add-item handler ran for any `.btn-add` button, including those with no `data-target`. Present since v1.0 and affecting the attachments button.
+
+## v1.3
+
+- Redesigned the top banner: official **ICTD circular logo** on the left and the **Arabic ICTD logo** (الإدارة التنفيذية للإتصالات وتقنية المعلومات) on the right, both on white rounded chips for contrast against the purple header.
+- Added a subtle diagonal accent shape to the banner, echoing the ICTD brand design.
+- Logos are embedded as base64 so the file stays fully self-contained with no external image dependencies.
+- Banner reflows on mobile: logos shrink and the date/Arabic logo move to their own row.
+
+## v1.2
+
+- Added **Coffee with IT** attendance counts (Students / Staff / Admin), shown only when the **ICTD** sector is selected.
+- Added a Coffee with IT KPI strip at the top of the Dashboard, with a Total card.
+- Added Coffee with IT attendance to the compiled CIO report.
+- Added sheet columns `CoffeeStudent`, `CoffeeStaff`, `CoffeeAdmin`.
+- **Fixed:** submissions failed silently when the sheet had no data rows. The lookup step returned no items, so the chain stopped before writing while still returning success to the browser. The first submission against an empty sheet was lost.
+
+## v1.1
+
+- Renamed the **Operation** sector to **ICTD** across the form, dashboard, trend table, and compiled report.
+
+## v1.0
+
+- Added version number to the page title, header badge, and footer; version now matches the filename.
+- Added **Attachments**: sector managers upload files directly to Google Drive with a short brief for each. Files are auto-shared so the CIO can open them from the report. 10 MB cap.
+- Added **Tasks (Key Activities) for Next Week**.
+- Removed **KPIs / Metrics** from the form, dashboard, and report. The sheet column is retained for historical data.
+- Converted Key Activities, Issues, Support Needed, and Next Week Tasks into numbered add/remove list inputs.
+- Visual redesign: Cairo font, Lucide icons, per-sector icons, softer shadows and radii, bold black headings for readability, mobile layout.
+- **Fixed:** every sector submitted in the same week overwrote the same row. n8n's `appendOrUpdate` was matching on `WeekOf` only and ignoring `Sector`. Replaced with an explicit lookup-then-update-or-append flow.
+
+## v0.1 — initial build
+
+- Three-tab app: Submit Report, Dashboard, Compiled Report (for CIO).
+- Sectors: NOC, SOC, CCCU, AAU.
+- Weekly submission keyed on week + sector, with edit-in-place on resubmission.
+- Dashboard with per-sector status cards and an 8-week RAG trend table.
+- Printable compiled report for the CIO.
+- Backend: n8n workflow writing to Google Sheets.
